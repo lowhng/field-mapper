@@ -5,6 +5,11 @@ import FileUploadSection from "@/components/FileUploadSection";
 import MappingInterface from "@/components/MappingInterface";
 import { parseCSVFile } from "@/lib/csvParser";
 
+// Create a client component wrapper for the reset function
+function ResetButton({ onClick }: { onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="hidden" />;
+}
+
 export default function Home() {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [targetFile, setTargetFile] = useState<File | null>(null);
@@ -54,6 +59,10 @@ export default function Home() {
     }
   };
 
+  const handleReset = () => {
+    setIsFilesUploaded(false);
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center p-6 pt-24 bg-background">
       <header className="w-full max-w-7xl mb-8">
@@ -80,7 +89,7 @@ export default function Home() {
           targetFields={targetFields}
           sourceFileName={sourceFile?.name || "Source File"}
           targetFileName={targetFile?.name || "Target File"}
-          resetToFileUpload={() => setIsFilesUploaded(false)}
+          resetToFileUpload={handleReset}
         />
       )}
     </main>

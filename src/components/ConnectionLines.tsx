@@ -138,9 +138,9 @@ const ConnectionLines = ({
 
           // Calculate control points for the bezier curve
           // Extend the lines all the way to the field edges
-          const sourceX = sourcePos.x; // Extend slightly past the right edge of source field
+          const sourceX = sourcePos.x; // Extend further past the right edge of source field
           const sourceY = sourcePos.y + offsetY;
-          const targetX = targetPos.x; // Extend slightly past the left edge of target field
+          const targetX = targetPos.x; // Extend further past the left edge of target field
           const targetY = targetPos.y + offsetY;
 
           // Control points at 1/3 and 2/3 of the distance
