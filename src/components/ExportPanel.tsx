@@ -86,52 +86,62 @@ const ExportPanel = ({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } else if (exportFormat === "image") {
-      // For image export, we'll use html2canvas
-      // First, we need to dynamically import html2canvas
-      import("html2canvas")
-        .then((html2canvasModule) => {
-          const html2canvas = html2canvasModule.default;
+      // For image export, use a simpler approach with html2canvas
+      // that works better with Next.js and Vercel deployment
+      const captureScreenshot = () => {
+        // Use a regular import to avoid dynamic import issues with Vercel
+        const html2canvasPromise = import("html2canvas")
+          .then((module) => {
+            const html2canvas = module.default;
+            const mappingContainer =
+              document.querySelector(".mapping-container");
 
-          // Find the mapping interface container
-          const mappingContainer = document.querySelector(".mapping-container");
+            if (!mappingContainer) {
+              throw new Error("Mapping container not found for screenshot");
+            }
 
-          if (mappingContainer) {
-            // Set background color to white before capturing to avoid grey areas
-            const originalBackground = mappingContainer.style.background;
-            mappingContainer.style.background = "white";
+            const containerElement = mappingContainer as HTMLElement;
+            const originalBackground = containerElement.style.background;
+            containerElement.style.background = "white";
 
-            html2canvas(mappingContainer as HTMLElement, {
+            return html2canvas(containerElement, {
               backgroundColor: "#ffffff",
               useCORS: true,
-              scale: 2, // Higher quality
-            }).then((canvas) => {
-              // Restore original background
-              mappingContainer.style.background = originalBackground;
-
-              // Convert canvas to blob
-              canvas.toBlob((blob) => {
-                if (blob) {
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = "field-mapping.png";
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                }
-              }, "image/png");
+              scale: 2,
             });
-          } else {
-            console.error("Mapping container not found for screenshot");
-          }
-        })
-        .catch((err) => {
-          console.error("Error loading html2canvas:", err);
-          alert(
-            "Could not load image export functionality. Please try another format.",
-          );
-        });
+          })
+          .then((canvas) => {
+            const mappingContainer =
+              document.querySelector(".mapping-container");
+            if (mappingContainer) {
+              const containerElement = mappingContainer as HTMLElement;
+              containerElement.style.background =
+                containerElement.dataset.originalBackground || "";
+            }
+
+            return new Promise<Blob | null>((resolve) => {
+              canvas.toBlob((blob) => resolve(blob), "image/png");
+            });
+          })
+          .then((blob) => {
+            if (!blob) return;
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "field-mapping.png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          })
+          .catch((err) => {
+            console.error("Error capturing screenshot:", err);
+            alert("Could not export as image. Please try another format.");
+          });
+      };
+
+      captureScreenshot();
     }
   };
 
